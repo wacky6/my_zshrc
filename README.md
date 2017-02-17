@@ -3,9 +3,11 @@ my_zshrc
 My zshrc + theme/plugins
 
 ## Usage
-```
+Install [oh-my-zsh](https://github.com/robbyrussell/oh-my-zsh) first.
+
+```sh
+cd ~
 git clone https://github.com/wacky6/my_zshrc
-# rm .zshrc, make sym link -> my_zshrc
 ln -s my_zshrc/zshrc ~/.zshrc
 ```
 

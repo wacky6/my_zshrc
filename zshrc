@@ -52,7 +52,7 @@ HIST_STAMPS="yyyy-mm-dd"
 # Add wisely, as too many plugins slow down shell startup.
 plugins=(battery cp colored-man-pages colorize \
          dircycle encode64 jsontools extract \
-		 last_working_dir common-aliases)
+         last_working_dir common-aliases)
 
 # User configuration
 

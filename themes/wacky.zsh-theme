@@ -1,6 +1,6 @@
 #!/usr/bin/env zsh
 # Modified from https://github.com/eendroroy/alien
-# Original theme used GPLv3 LICENSE
+# Original theme uses GPLv3
 
 _is_git(){
   if [[ $(git branch 2>/dev/null) != "" ]]; then echo 1 ; else echo 0 ; fi

@@ -31,8 +31,8 @@ __storage_info(){
 }
 
 __ssh_client(){
-  if [ -n "$SSH_CLIENT" ]; then
-    echo $SSH_CLIENT | awk {'print $1 " "'};
+  if [ -n "$SSH_CLIENT" ] || [ -n "$SSH_TTY" ]; then
+    echo "$( hostname -s )"
   fi
 }
 
@@ -57,8 +57,8 @@ __battery_stat(){
     __bat_power_ind="";
     if [[ $__bat_power = "charging" ]]; then __bat_power_ind="⇡";
     elif [[ $__bat_power = "discharging" ]]; then __bat_power_ind="⇣";
-    elif [[ $__bat_power = "finishing" ]]; then __bat_power_ind="⚡︎";
-    elif [[ $__bat_power = "charged" ]]; then __bat_power_ind="⚡︎";
+    elif [[ $__bat_power = "finishing" ]]; then __bat_power_ind="⌀";
+    elif [[ $__bat_power = "charged" ]]; then __bat_power_ind="⌀";
     fi
        __bat_per=`pmset -g batt | tail -1 | awk '{print $3}' | tr -d "%;"`
     if [[ -n $__bat_per ]]; then
@@ -71,22 +71,39 @@ __date_str(){
   echo `date "+%H:%M:%S"`
 }
 
-wacky_prompts(){
-  # For xterm256 color codes:
-  # see: https://upload.wikimedia.org/wikipedia/commons/1/15/Xterm_256color_chart.svg
- 
-  PROMPT='
-%K{017}%F{221}%B ♈︎ %b%f%k\
-%K{017} %(?.%F{157}✓%f.%F{196}✗%f) %k\
-%K{017}%F{254} $( __date_str ) %f%k\
-%K{018}%F{252} $( __battery_stat ) %f%k\
-%K{026}%F{229} %n %f%k\
-%K{045}%F{019} %3~ %f%k\
-%K{240}%F{254}$( _vcs_info )%k%f
-%F{228}%B>%b%f '
-  
-  RPROMPT=""
+get_padding () {
+  local STR=$1$2
+  local ZERO='%([BSUbfksu]|([FK]|){*})'
+  local LENGTH=${#${(S%%)STR//$~ZERO/}}
+
+  local PADDING=$(( ${COLUMNS} - $LENGTH - 1 + $3 ))
+
+  echo ${(l:$PADDING:: :)}
 }
 
-wacky_prompts
+precmd() {
+  # For xterm256 color codes:
+  # see: https://upload.wikimedia.org/wikipedia/commons/1/15/Xterm_256color_chart.svg
+  
+  # user name:
+  # %K{017}%F{254} %n %f%k\
 
+  LEFT="\
+%K{018}%F{255} %3~ %f%k\
+%K{026}%F{252}$( _vcs_info )%k%f\
+"
+
+  RIGHT="\
+%K{026}%F{252} $( __battery_stat ) %f%k\
+%K{018}%F{254}  $( __date_str ) %f%k\
+%K{018}%F{220}%B ♈︎  %b%f%k\
+"
+
+  PADDING=`get_padding $LEFT $RIGHT 2`
+  print ''
+  print -rP $LEFT$PADDING$RIGHT
+}
+
+ZLE_RPROMPT_INDENT=0
+PROMPT='%F{197}$( __ssh_client )%f %F{228}%B>%b%f '
+RPROMPT=''

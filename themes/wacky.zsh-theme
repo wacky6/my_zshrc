@@ -42,17 +42,16 @@ __battery_stat(){
     if which upower > /dev/null ; then
       __bat_power=`upower -i /org/freedesktop/UPower/devices/battery_BAT0 | grep state | awk '{print $2}'`;
       __bat_power_ind="";
-      if [[ $__bat_power = "charging" ]]; then __bat_power_ind="+";
-      elif [[ $__bat_power = "discharging" ]]; then __bat_power_ind="-";
-      elif [[ $__bat_power = "fully-charged" ]]; then __bat_power_ind="•";
+      if [[ $__bat_power = "charging" ]]; then __bat_power_ind="⇡";
+      elif [[ $__bat_power = "discharging" ]]; then __bat_power_ind="⇣";
+      elif [[ $__bat_power = "fully-charged" ]]; then __bat_power_ind="⌀";
       fi
       __bat_per=`upower -i /org/freedesktop/UPower/devices/battery_BAT0 | grep percentage | awk '{print $2}' | sed "s|%||g"`;
       if [[ -n $__bat_per ]]; then
-        echo " | ${__bat_power_ind}${__bat_per}";
+        echo " ${__bat_power_ind}${__bat_per} ";
       fi
     fi
-  fi
-  if [[ $__os = "Darwin" ]]; then
+  elif [[ $__os = "Darwin" ]]; then
     __bat_power=`pmset -g batt | tail -1 | awk '{print $4}' | tr -d "%;"`;
     __bat_power_ind="";
     if [[ $__bat_power = "charging" ]]; then __bat_power_ind="⇡";
@@ -62,13 +61,24 @@ __battery_stat(){
     fi
        __bat_per=`pmset -g batt | tail -1 | awk '{print $3}' | tr -d "%;"`
     if [[ -n $__bat_per ]]; then
-      echo "${__bat_per}${__bat_power_ind}";
+      echo " ${__bat_per}${__bat_power_ind} ";
     fi
+  else
+    : ;
   fi
 }
 
 __date_str(){
   echo `date "+%H:%M:%S"`
+}
+
+__last_status() {
+  EXIT_CODE=$?
+  if [ $EXIT_CODE -eq 0 ] ; then
+    echo "%F{120}✓%f"
+  else
+    echo "%F{196}✗ ${EXIT_CODE}%f"
+  fi
 }
 
 get_padding () {
@@ -88,15 +98,17 @@ precmd() {
   # user name:
   # %K{017}%F{254} %n %f%k\
 
+  local LAST_STATUS=`__last_status`
   LEFT="\
-%K{018}%F{255} %3~ %f%k\
-%K{026}%F{252}$( _vcs_info )%k%f\
+%K{019} $LAST_STATUS %k\
+%K{026}%F{255} %3~ %f%k\
+%K{039}%F{018}$( _vcs_info )%k%f\
 "
 
   RIGHT="\
-%K{026}%F{252} $( __battery_stat ) %f%k\
-%K{018}%F{254}  $( __date_str ) %f%k\
-%K{018}%F{220}%B ♈︎  %b%f%k\
+%K{026}%F{252}$( __battery_stat )%f%k\
+%K{019}%F{254}  $( __date_str ) %f%k\
+%K{019}%F{220}%B ♈︎  %b%f%k\
 "
 
   PADDING=`get_padding $LEFT $RIGHT 2`
@@ -105,5 +117,5 @@ precmd() {
 }
 
 ZLE_RPROMPT_INDENT=0
-PROMPT='%F{197}$( __ssh_client )%f %F{228}%B>%b%f '
+PROMPT='%F{196}$( __ssh_client )%f %F{228}%B>%b%f '
 RPROMPT=''

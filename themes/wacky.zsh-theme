@@ -101,7 +101,7 @@ precmd() {
   # __last_status must be called first to detect last exit code
   local LAST_STATUS=`__last_status`
   LEFT="\
-%K{019} LAST_STATUS %k\
+%K{019} $LAST_STATUS %k\
 %K{026}%F{255} %3~ %f%k\
 %K{039}%F{018}$( _vcs_info )%k%f\
 "

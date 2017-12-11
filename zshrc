@@ -86,7 +86,7 @@ source $ZSH/oh-my-zsh.sh
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 alias x230="ssh root@192.168.1.77"
 alias cubie="ssh root@192.168.1.79"
-alias lax-3="ssh root@lax-3.wacky.one"
-alias sjc-1="ssh root@sjc-1.wacky.one"
+alias lax-6="ssh root@lax-6.wacky.one"
+alias lax-7="ssh root@lax-7.wacky.one"
 alias rpi-1="ssh root@192.168.1.193"
 

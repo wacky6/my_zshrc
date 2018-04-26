@@ -86,7 +86,7 @@ get_padding () {
   local ZERO='%([BSUbfksu]|([FK]|){*})'
   local LENGTH=${#${(S%%)STR//$~ZERO/}}
 
-  local PADDING=$(( ${COLUMNS} - $LENGTH - 1 + $3 ))
+  local PADDING=$(( ${COLUMNS} - $LENGTH ))
 
   echo ${(l:$PADDING:: :)}
 }
@@ -112,7 +112,7 @@ precmd() {
 %K{019}%F{220}%B ♈︎  %b%f%k\
 "
 
-  PADDING=`get_padding $LEFT $RIGHT 2`
+  PADDING=`get_padding $LEFT $RIGHT`
   print ''
   print -rP $LEFT$PADDING$RIGHT
 }

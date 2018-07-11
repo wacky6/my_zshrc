@@ -84,10 +84,9 @@ source $ZSH/oh-my-zsh.sh
 # Example aliases
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
-alias x230="ssh root@192.168.176.77"
 alias lax-6="ssh root@lax-6.wacky.one"
-alias lax-7="ssh root@lax-7.wacky.one"
 alias alchemy="ssh root@alchemy.wacky.one"
+alias gen10="ssh root@192.168.176.71"
 
 alias js-bin="~/git/js-bin/js-bin"
 

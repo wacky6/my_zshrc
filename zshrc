@@ -52,7 +52,7 @@ HIST_STAMPS="yyyy-mm-dd"
 # Add wisely, as too many plugins slow down shell startup.
 plugins=(battery cp colored-man-pages colorize \
          dircycle encode64 jsontools extract \
-         last_working_dir common-aliases)
+         common-aliases gitfast)
 
 # User configuration
 
@@ -91,3 +91,14 @@ alias gen10="ssh root@192.168.176.71"
 alias js-bin="~/git/js-bin/js-bin"
 
 export LC_ALL="en_US.UTF-8"
+
+# Git shortcuts
+alias gs="git status"
+alias gd="git diff"
+alias gdc="git diff --cached"
+alias gds="git diff --staged"
+alias gdu="git diff origin/master"
+alias gcb="git checkout -b"
+
+# Source localrc
+[ -f ~/.localrc ] && source ~/.localrc

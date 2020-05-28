@@ -6,7 +6,7 @@ _is_git(){
   if [[ $(git branch 2>/dev/null) != "" ]]; then echo 1 ; else echo 0 ; fi
 }
 
-_git_branch() {
+__wacky_git_branch() {
   ref=$(git symbolic-ref HEAD 2> /dev/null) || \
   ref=$(git rev-parse --short HEAD 2> /dev/null) || return false;
   echo " $B⑃$b ${ref#refs/heads/} ";
@@ -15,7 +15,7 @@ _git_branch() {
 
 _vcs_info(){
   if [[ $(_is_git) == 1 ]]; then
-    _git_branch;
+    __wacky_git_branch;
   else
     echo "";
   fi
@@ -94,7 +94,6 @@ get_padding () {
 precmd() {
   # For xterm256 color codes:
   # see: https://upload.wikimedia.org/wikipedia/commons/1/15/Xterm_256color_chart.svg
-  
   # user name:
   # %K{017}%F{254} %n %f%k\
 

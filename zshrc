@@ -97,8 +97,17 @@ alias gs="git status"
 alias gd="git diff"
 alias gdc="git diff --cached"
 alias gds="git diff --staged"
-alias gdu="git diff origin/master"
 alias gcb="git checkout -b"
+
+# A hacky way to do diff against upstream with master/main migration.
+# This prefers main (if it exists) over master.
+function gdu {
+    if git rev-parse --verify origin/main ; then
+        git diff origin/main
+    else
+        git diff origin/master
+    fi
+}
 
 # Source localrc
 [ -f ~/.localrc ] && source ~/.localrc

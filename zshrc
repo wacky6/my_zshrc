@@ -109,5 +109,17 @@ function gdu {
     fi
 }
 
+# Intelligent graphical session switching.
+# Automatically detects CRD / local session if that's relevant.
+function _clever_display() {
+    PROBED=$( command switch-graphical-session current 2>/dev/null )
+    if [[ "$PROBED" =~ "local" ]]; then
+        export DISPLAY=:1
+    elif [[ "$PROBED" =~ "crd" ]]; then
+        export DISPLAY=:20
+    fi
+}
+precmd_functions+=(_clever_display)
+
 # Source localrc
 [ -f ~/.localrc ] && source ~/.localrc

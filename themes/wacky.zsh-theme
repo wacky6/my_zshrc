@@ -30,8 +30,8 @@ __storage_info(){
   echo "💾 $fs - F:$free U:$used T:$size";
 }
 
-__ssh_client(){
-  if [ -n "$SSH_CLIENT" ] || [ -n "$SSH_TTY" ]; then
+__remote_identification(){
+  if [ -n "$SSH_CLIENT" ] || [ -n "$SSH_TTY" ] || [ -n "$COCKPIT_REMOTE_PEER" ] || [ -n "$VSCODE_PROXY_URI" ]; then
     echo "$( hostname -s )"
   fi
 }
@@ -117,5 +117,5 @@ precmd() {
 }
 
 ZLE_RPROMPT_INDENT=0
-PROMPT='%F{196}$( __ssh_client )%f %F{228}%B>%b%f '
+PROMPT='%F{196}$( __remote_identification )%f %F{228}%B>%b%f '
 RPROMPT=''

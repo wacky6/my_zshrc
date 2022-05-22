@@ -30,10 +30,15 @@ __storage_info(){
   echo "💾 $fs - F:$free U:$used T:$size";
 }
 
-__remote_identification(){
-  if [ -n "$SSH_CLIENT" ] || [ -n "$SSH_TTY" ] || [ -n "$COCKPIT_REMOTE_PEER" ] || [ -n "$VSCODE_PROXY_URI" ]; then
-    echo "$( hostname -s )"
+__tty_id(){
+  tty_id=()
+  if [ -n "$STY" ]; then
+    tty_id+=( screen.$( echo $STY | cut -f1 -d"." )  )
   fi
+  if [ -n "$SSH_CLIENT" ] || [ -n "$SSH_TTY" ] || [ -n "$COCKPIT_REMOTE_PEER" ] || [ -n "$VSCODE_PROXY_URI" ]; then
+    tty_id+=( $( hostname -s ) )
+  fi
+  echo ${(j:/:)tty_id}
 }
 
 __battery_stat(){
@@ -117,5 +122,5 @@ precmd() {
 }
 
 ZLE_RPROMPT_INDENT=0
-PROMPT='%F{196}$( __remote_identification )%f %F{228}%B>%b%f '
+PROMPT='%F{196}$( __tty_id )%f %F{228}%B>%b%f '
 RPROMPT=''

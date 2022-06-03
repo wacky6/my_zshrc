@@ -12,9 +12,12 @@ ln -s my_zshrc/zshrc ~/.zshrc
 ```
 
 ## Note
-Only tested on RMBP 13 with iTerm2.
 
-May need modifications to work elsewhere (eg. server).
+Tested Terminal:
+* macOS iTerm2
+* Ubuntu GNOME Terminal
+* VSCode / code-server built-in terminal
+* Cockpit built-in terminal
 
 ## LICENSE
 GPLv3

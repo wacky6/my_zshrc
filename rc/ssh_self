@@ -1,0 +1,11 @@
+# SSH alias for connecting to my own machines
+
+# Owned
+alias gen10="ssh root@nkg.ovl.wacky.one"
+alias alchemist="ssh root@alchemist.syd.wacky.one"
+alias magus2="ssh root@magus2.syd.wacky.one"
+
+# Servers
+alias lax-6="ssh root@lax-6.wacky.one"
+alias kix-1="ssh root@kix-1.wacky.one"
+alias syd-2="ssh root@syd-2.wacky.one"

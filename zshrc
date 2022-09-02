@@ -123,3 +123,10 @@ precmd_functions+=(_clever_display)
 
 # Source localrc
 [ -f ~/.localrc ] && source ~/.localrc
+
+# Pull in env specific RC files if .localrc declared them.
+for rc in ${WACKY_ADDITIONAL_RC:-} ; do
+    ADDITIONAL_RC=${ZSH_CUSTOM}rc/${rc}
+    [ -f "$ADDITIONAL_RC" ] && source "$ADDITIONAL_RC" || echo "WARN: Additional rc \"$rc\" isn't found"
+done
+unset WACKY_ADDITIONAL_RC

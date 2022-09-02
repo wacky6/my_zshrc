@@ -1,0 +1,8 @@
+#!/usr/bin/env zsh
+
+# Device / location specific instructions.
+# Copy this to ~/.localrc, then tweak accordingly.
+
+# List of additional rc files to execute, should match file names
+# in rc/ folder of this repository.
+export WACKY_ADDITIONAL_RC=( ssh_self )

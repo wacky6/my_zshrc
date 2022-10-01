@@ -130,3 +130,17 @@ for rc in ${WACKY_ADDITIONAL_RC:-} ; do
     [ -f "$ADDITIONAL_RC" ] && source "$ADDITIONAL_RC" || echo "WARN: Additional rc \"$rc\" isn't found"
 done
 unset WACKY_ADDITIONAL_RC
+
+# Check localrc is up-to-date with remote.
+# Assumes zsh-sync is configured by zsh script from wacky6/ok-deploy
+ZSHRC_DIR=$( dirname $( readlink -f $HOME/.zshrc ) )
+CUR_COMMIT_TIME=$( cd $ZSHRC_DIR && git show master -s --format='%ct' || echo 0 )
+UPSTREAM_COMMIT_TIME=$( cd $ZSHRC_DIR && git show origin/master -s --format='%ct' || echo 0 )
+if [ $UPSTREAM_COMMIT_TIME -gt $CUR_COMMIT_TIME ] ; then
+  print -rP ""
+  print -rP "%K{160}Warning: Local zshrc is out-of-sync. Please check local changes.%F{231}%f%k"
+  print -rP "%F{228}   Local commit is: $( git show master -s --format='%ci' )%f"
+  print -rP "%F{228}  Remote commit is: $( git show origin/master -s --format='%ci' )%f"
+  print -rP ""
+fi
+

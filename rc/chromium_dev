@@ -186,3 +186,18 @@ dcr() {
 
 # Workaround for https://crbug.com/1345490
 alias gn="gn --script-executable=vpython3"
+
+# Compile command database generation.
+# Assuming:
+#   compdb_* is called from chromium/src
+#   using qjw's layout:
+#     - out/Debug for ash-on-linux
+#     - out/lacros for lacros-on-linux
+#
+# Remember to restart clangd language server (until google's clangd supports hot-reload).
+# Shortcut Ctrl/Cmd+Shift+P, "restart language server"
+alias compdb_ash="tools/clang/scripts/generate_compdb.py -p out/Debug > compile_commands.json"
+alias compdb_lacros="tools/clang/scripts/generate_compdb.py -p out/lacros > compile_commands.json"
+alias compa="compdb_ash"
+alias compl="compdb_lacros"
+

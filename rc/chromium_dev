@@ -201,3 +201,31 @@ alias compdb_lacros="tools/clang/scripts/generate_compdb.py -p out/lacros > comp
 alias compa="compdb_ash"
 alias compl="compdb_lacros"
 
+# Print a nice warning message recommend rebooting the system to avoid
+# Chrome profile being messed up by CRD.
+#
+# Workaround for: http://b/239093765
+if command -v switch-graphical-session &> /dev/null ; then
+  if [[ ! -v REAL_SWITCH_GRAPHICAL_SESSION_CMD ]] ; then
+    REAL_SWITCH_GRAPHICAL_SESSION_CMD=$( which switch-graphical-session )
+  fi
+
+  switch-graphical-session() {
+    "$REAL_SWITCH_GRAPHICAL_SESSION_CMD" $@
+    EXIT_CODE=$?
+    CAN_SWITCH=0
+
+    for arg in "$@" ; do
+      if [[ $arg =~ "local" || $arg =~ "crd" ]] ; then
+        CAN_SWITCH=1
+      fi
+    done
+
+    # Check if the command caused a switch. Print warning if yes.
+    if [[ $EXIT_CODE == 0 && $CAN_SWITCH == 1 ]] ; then
+      print -rP "%K{220}%F{196}Warning: Please reboot to avoid messed up profiles.%f%k"
+    fi
+
+    return $EXIT_CODE
+  }
+fi

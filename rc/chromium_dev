@@ -65,8 +65,9 @@ an() {
       fi
 
       if [ $xvfb -eq 1 ]; then
-        # wrap with xvfb so we don't show window on real displays
-        ./testing/xvfb.py $( echo $maybe_lacros_wrapper ) ${build_dir}/${target} $@
+        # wrap with dummy_home and xvfb, so we don't get windows showing on
+        # desktop, and keep the real homedir untouched.
+        ./testing/run_with_dummy_home.py ./testing/xvfb.py $( echo $maybe_lacros_wrapper ) ${build_dir}/${target} $@
       else
         # run on active display, and allow human intervention
         $( echo $maybe_lacros_wrapper ) ${build_dir}/${target} $@ \

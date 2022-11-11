@@ -86,7 +86,7 @@ __last_status() {
   fi
 }
 
-get_padding () {
+__get_padding() {
   local STR=$1$2
   local ZERO='%([BSUbfksu]|([FK]|){*})'
   local LENGTH=${#${(S%%)STR//$~ZERO/}}
@@ -116,7 +116,15 @@ precmd() {
 %K{019}%F{220}%B ♈︎  %b%f%k\
 "
 
-  PADDING=`get_padding $LEFT $RIGHT`
+  for func in $wacky_theme_left_functions; do
+    LEFT=${LEFT}$($func)
+  done
+
+  for func in $wacky_theme_right_functions; do
+    RIGHT=$($func)${RIGHT}
+  done
+
+  PADDING=`__get_padding $LEFT $RIGHT`
   print ''
   print -rP $LEFT$PADDING$RIGHT
 }

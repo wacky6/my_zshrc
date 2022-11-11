@@ -56,37 +56,13 @@ plugins=(battery cp colored-man-pages colorize \
 
 # User configuration
 
-# export MANPATH="/usr/local/man:$MANPATH"
+# Unset precmd_functions to avoid concatenation if we source ~/.zshrc
+precmd_functions=( )
 
 source $ZSH/oh-my-zsh.sh
 
 # You may need to manually set your language environment
 # export LANG=en_US.UTF-8
-
-# Preferred editor for local and remote sessions
-# if [[ -n $SSH_CONNECTION ]]; then
-#   export EDITOR='vim'
-# else
-#   export EDITOR='mvim'
-# fi
-
-# Compilation flags
-# export ARCHFLAGS="-arch x86_64"
-
-# ssh
-# export SSH_KEY_PATH="~/.ssh/dsa_id"
-
-# Set personal aliases, overriding those provided by oh-my-zsh libs,
-# plugins, and themes. Aliases can be placed here, though oh-my-zsh
-# users are encouraged to define aliases within the ZSH_CUSTOM folder.
-# For a full list of active aliases, run `alias`.
-#
-# Example aliases
-# alias zshconfig="mate ~/.zshrc"
-# alias ohmyzsh="mate ~/.oh-my-zsh"
-alias lax-6="ssh root@lax-6.wacky.one"
-alias alchemy="ssh root@alchemy.wacky.one"
-alias gen10="ssh root@192.168.176.71"
 
 alias js-bin="~/git/js-bin/js-bin"
 
@@ -123,6 +99,10 @@ precmd_functions+=(_clever_display)
 
 # Source localrc
 [ -f ~/.localrc ] && source ~/.localrc
+
+# Declare hooks for RC files
+wacky_theme_left_functions=( )
+wacky_theme_right_functions=( )
 
 # Pull in env specific RC files if .localrc declared them.
 for rc in ${WACKY_ADDITIONAL_RC:-} ; do

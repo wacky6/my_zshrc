@@ -7,9 +7,26 @@
 #     export BOARD=<DUT_BOARD_NAME>
 #     export DUT_IP=<DUT_DIRECT_CONNECT_IP>
 
+function _get_cr_build_desc() {
+  IFS="/" read name cr_build <<< ${CR_BUILD:-"out/Debug"}
+  echo $cr_build
+}
+
+# $CR_BUILD build config prompt
+function crbuild() {
+  cr_git_remote=$( git remote -v 2>/dev/null | grep -c chromium/src.git )
+  if [ $cr_git_remote -gt 0 ]; then
+    echo "%K{043}%F{232} ⛭ $( _get_cr_build_desc ) %k%f"
+  fi
+}
+
+wacky_theme_left_functions+=( crbuild )
+
 # AutoNinja for Chromium
 #
 # Abbreviated from: AutoNinja + Lacros + eXecute + Xvfb
+#
+# This script reads from $CR_BUILD env variable to pick the build directory.
 #
 # Quick reference (need the following aliases):
 #   anx chrome --extra-options : Compile and run Chrome with --extra-options
@@ -38,7 +55,7 @@ an() {
     return 1
   fi
 
-  local default_build="out/Debug"
+  local default_build=${CR_BUILD:-"out/Debug"}
   local build_dir="${default_build}"
   if [ $lacros -eq 1 ]; then
     build_dir="out/lacros"

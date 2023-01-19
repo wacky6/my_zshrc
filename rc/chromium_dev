@@ -75,6 +75,33 @@ an() {
   fi
 
   if [ $run -eq 1 ]; then
+    # Network helper
+    local network_helper=" "
+
+    if [ $no_network -eq 1 ]; then
+      if ! type "sudo" > /dev/null || ! type "ip" > /dev/null ; then
+        print -rP "%F{179}sudo and/or ip not found, --no-network will be ignored%f"
+      fi
+
+      # Validate sudo, which is required for `ip netns exec`.
+      # Assumes a reasonable sudo authentication timeout.
+      local newline=$'\n'
+      local sudo_prompt=$( print -rP '%F{220}chromium network helper needs to configure network namespaces.${newline}[sudo] password for %%u: %f' )
+      sudo -vp "$sudo_prompt"
+
+      local effective_user=$( whoami )
+      local test_ns=chromium_test
+
+      # Create network namespace if necessary.
+      netns_found=$( ip netns list | grep -Fxc $test_ns )
+      if [ $netns_found -ne 1 ] ; then
+        echo "Creating network namespace for testing: $test_ns"
+        sudo ip netns add $test_ns && echo "netns $test_ns created"
+      fi
+
+      network_helper="sudo ip netns exec $test_ns sudo -u $effective_user"
+    fi
+
     if [[ $target == *"test"* ]]; then
       # Run test. Prepend lacros wrapper is necessary.
       local maybe_lacros_wrapper=" "
@@ -87,10 +114,10 @@ an() {
       if [ $xvfb -eq 1 ]; then
         # wrap with dummy_home and xvfb, so we don't get windows showing on
         # desktop, and keep the real homedir untouched.
-        ./testing/run_with_dummy_home.py ./testing/xvfb.py $( echo $maybe_lacros_wrapper ) ${build_dir}/${target} $@
+        $( echo $network_helper ) ./testing/run_with_dummy_home.py ./testing/xvfb.py $( echo $maybe_lacros_wrapper ) ${build_dir}/${target} $@
       else
         # run on active display, and allow human intervention
-        $( echo $maybe_lacros_wrapper ) ${build_dir}/${target} $@ \
+        $( echo $network_helper ) $( echo $maybe_lacros_wrapper ) ${build_dir}/${target} $@ \
             --enable-pixel-output-in-tests \
             --ui-test-action-max-timeout=1000000 \
             --test-launcher-timeout=1000000
@@ -144,17 +171,17 @@ an() {
           clever_args="$clever_args --force-device-scale-factor=1.3 --ash-host-window-bounds=2560x1360\*1.3 "
         fi
       fi
-      echo "Clever args = $clever_args" >&2
+      print -rP "clever args: %F{220}$clever_args%f" >&2
 
       if [[ $lacros == 1 ]]; then
         # Run lacros non-test target.
         if [[ $target != "chrome" ]]; then
-          echo "warning: non-chrome, non-test lacros target not supported."
+          echo "warning: non-chrome, non-test lacros target isn't supported."
         fi
         local xdg_dir="../ash_chrome_xdg_runtime"
         local ash_profile="../profiles/ash"
         mkdir -p ${xdg_dir}
-        ${default_build}/chrome \
+        $( echo $network_helper ) ${default_build}/chrome \
             --user-data-dir=$ash_profile \
             --enable-wayland-server \
             --no-startup-window \
@@ -163,7 +190,7 @@ an() {
             $@
       else
         # Run non-lacros target.
-        ${build_dir}/${target} $( echo $clever_args ) $@
+        $( echo $network_helper ) ${build_dir}/${target} $( echo $clever_args ) $@
       fi
     fi
   fi

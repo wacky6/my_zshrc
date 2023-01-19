@@ -33,21 +33,23 @@ wacky_theme_left_functions+=( crbuild )
 #   anlx chrome --extra-options : Compile Ash and Lacros chrome, run Ash chrome with lacros support and --extra-options
 #   anxx browsertest: Compile and run browsertest in the background
 #   anlxx browsertest: Compile and run lacros browsertest with default test runner in the background
+#   anx --no-network ... : Same as `anx`, but pretends to disconnect from the Internet (by isolating `target` in its own network namespace)
+#
+# WARN: This definately won't work on bash due to `zparseopts`.
 an() {
-  local OPTIND
-  local run=0
-  local xvfb=0
-  local lacros=0
-  while getopts "xXl" o; do
-    case "$o" in
-      x) run=1;;
-      X) xvfb=1;;
-      l) lacros=1;;
-      ?) echo >&2 "Usage: an [-xXl] <target> [opts]"; return 1;;
-   esac
-  done
+  #
+  zparseopts -E -D -a opts \
+    x -exec \
+    X -xfvb \
+    l -lacros \
+    N -no-network
 
-  if [ $# -lt $OPTIND ]; then
+  local run=$(( $opts[(Ie)-x] || $opts[(Ie)--exec] ))
+  local xfvb=$(( $opts[(Ie)-X] || $opts[(Ie)--xfvb] ))
+  local lacros=$(( $opts[(Ie)-l] || $opts[(Ie)--lacros] ))
+  local no_network=$(( $opts[(Ie)-N] || $opts[(Ie)--no-network] ))
+
+  if [ $# -lt 1 ]; then
     echo >&2 "Invalid usage: missing <target>"
     echo >&2 ""
     echo >&2 "Usage: an [-xXl] <target> [opts]"
@@ -55,15 +57,16 @@ an() {
     return 1
   fi
 
+  local target=$1
+
   local default_build=${CR_BUILD:-"out/Debug"}
   local build_dir="${default_build}"
   if [ $lacros -eq 1 ]; then
     build_dir="out/lacros"
   fi
 
-  shift $((OPTIND - 1))
   local target="$1"
-  shift
+  shift 1
 
   ninja -j 2048 -C $build_dir $target || return 1
   if [[ $target == "chrome" && $lacros == 1 ]]; then

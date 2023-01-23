@@ -40,12 +40,12 @@ an() {
   #
   zparseopts -E -D -a opts \
     x -exec \
-    X -xfvb \
+    X -xvfb \
     l -lacros \
     N -no-network
 
   local run=$(( $opts[(Ie)-x] || $opts[(Ie)--exec] ))
-  local xfvb=$(( $opts[(Ie)-X] || $opts[(Ie)--xfvb] ))
+  local xvfb=$(( $opts[(Ie)-X] || $opts[(Ie)--xvfb] ))
   local lacros=$(( $opts[(Ie)-l] || $opts[(Ie)--lacros] ))
   local no_network=$(( $opts[(Ie)-N] || $opts[(Ie)--no-network] ))
 

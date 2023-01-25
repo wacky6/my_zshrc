@@ -184,7 +184,6 @@ an() {
             --user-data-dir=$ash_profile \
             --enable-wayland-server \
             --no-startup-window \
-            --login-manager --login-profile=user \
             --enable-features=LacrosSupport,LacrosPrimary,LacrosOnly \
             --lacros-chrome-path=$build_dir \
             $@

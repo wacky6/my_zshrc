@@ -37,7 +37,6 @@ wacky_theme_left_functions+=( crbuild )
 #
 # WARN: This definately won't work on bash due to `zparseopts`.
 an() {
-  #
   zparseopts -E -D -a opts \
     x -exec \
     X -xvfb \

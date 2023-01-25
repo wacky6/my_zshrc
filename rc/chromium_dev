@@ -181,11 +181,12 @@ an() {
         local xdg_dir="../ash_chrome_xdg_runtime"
         local ash_profile="../profiles/ash"
         mkdir -p ${xdg_dir}
-        $( echo $network_helper ) ${default_build}/chrome \
+        XGD_RUNTIME_DIR=${xdg_dir} $( echo $network_helper ) ${default_build}/chrome \
             --user-data-dir=$ash_profile \
             --enable-wayland-server \
             --no-startup-window \
-            --enable-features=LacrosSupport \
+            --login-manager --login-profile=user \
+            --enable-features=LacrosSupport,LacrosPrimary,LacrosOnly \
             --lacros-chrome-path=$build_dir \
             $@
       else

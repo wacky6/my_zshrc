@@ -14,6 +14,9 @@ import fileinput
 import threading
 import atexit
 import argparse
+import re
+import time
+from datetime import datetime
 
 # TODO: Figure out integration with Ash+Lacros browsertest
 
@@ -63,44 +66,110 @@ threading.Thread(daemon=True, target=ash_exit_watcher, args=()).start()
 stdout_lock = threading.Lock()
 
 # Achtung! Dodgy way to handle File IO like events.
-def line_wrap(f, lock, prefix='', suffix=''):
+def line_handler(f, lock, line_mapper=lambda x: x):
     try:
         for line in f:
             # TODO: Filter out less useful lines
-            # TODO: Chop out time line?
+            line = line_mapper(line)
+            if not line:
+                continue
             with lock:
-                sys.stdout.write(prefix+line+suffix)
+                sys.stdout.write(line)
                 sys.stdout.flush()
     except Exception as e:
         print(e, file=sys.stderr)
 
-class term_colors:
+class tesc:
     # B for background
     B_BLUE = '\033[48;5;17m'
     B_GREEN = '\033[48;5;22m'
-    
+
     # F for foreground
     F_WHITE = '\033[38;5;255m'
-    F_PINK = '\033[38;5;225m'
+    F_L_BLUE = '\033[38;5;195m'
+    F_L_GREEN = '\033[38;5;194m'
     F_BLUE = '\033[38;5;117m'
-    F_GREEN = '\033[38;5;194m'
+    F_GREEN = '\033[38;5;120m'
+    F_D_BLUE = '\033[38;5;75m'
+    F_D_GREEN = '\033[38;5;82m'
+
+    # Bold styling
+    F_BOLD = '\033[1m'
 
     # Reset to default color
     END = '\033[0m'
 
-# Spawn log merges.
-ash_prefix = f'{term_colors.B_BLUE}{term_colors.F_WHITE} Ash    {term_colors.END} {term_colors.F_BLUE}'
-lacros_prefix = f'{term_colors.B_GREEN}{term_colors.F_WHITE} Lacros {term_colors.END} {term_colors.F_GREEN}'
-suffix = f'{term_colors.END}'
+# Line handlers and utilities
+def concise_syslog_line(line, fg_gradient=[]):
+    # syslog format patterns
+    re_iso_8601 = r'\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}\.\d{3,}Z'
+    re_level = r'[A-Z]{3,}'
+    re_process_thread = r'(?:[a-zA-Z_0-9\-]+)\[(?:\d+):(?:\d+)\]'
+    re_file_linenumber = r'\[[a-zA-Z_0-9.\-]+\(\d+\)\]'
+    re_syslog_line = fr'({re_iso_8601})\s*({re_level})\s*({re_process_thread}):\s*({re_file_linenumber})\s*(.+)'
 
+    # RegExp that when matched, mark the line as important and gives it eye-catching styling
+    # TODO: make this configurable
+    re_importance_hints = r'(\*{3,})|system'
+
+    def syslog_line_rewrite(m):
+        base_gradient = 0
+
+        if len(re.findall(re_importance_hints, line)) > 0:
+            base_gradient += 1
+
+        # Time rewrite
+        #
+        # Replace the trailing 'Z' with TZ offset, because python3<3.11 can't parse it.
+        # WTF py?
+        iso_str = m[1].replace('Z', '+00:00')
+        dt = datetime.fromisoformat(iso_str).astimezone()
+        frac_str = '%03d' % int(round(dt.microsecond / 1000))
+        time_str = f'T{dt.strftime(r"%H:%M:%S")}.{frac_str}' # TODO:color this
+
+        # Note, rewrite the following if needed.
+        level_str = m[2]
+        process_thread_str = m[3]
+        file_linenumber_str = m[4]
+        message_str = m[5]
+
+        base_gradient = min(base_gradient, len(fg_gradient)-1)
+        fg1_esc = fg_gradient[base_gradient]
+        fg2_esc = fg_gradient[base_gradient+1]
+
+        if base_gradient > 0:
+            fg1_esc = tesc.F_BOLD + fg1_esc
+            fg2_esc = tesc.F_BOLD + fg2_esc
+
+        return f'{fg1_esc}{time_str} {level_str} {process_thread_str} {file_linenumber_str}: {tesc.END}{fg2_esc}{message_str}{tesc.END}'
+
+    return re.sub(re_syslog_line, syslog_line_rewrite, line)
+
+def ash_line_handler(line):
+    prefix = f'{tesc.B_BLUE}{tesc.F_WHITE} Ash    {tesc.END} {tesc.F_L_BLUE}'
+    suffix = f'{tesc.END}'
+
+    line = concise_syslog_line(line, [tesc.F_L_BLUE, tesc.F_BLUE, tesc.F_D_BLUE])
+
+    return f'{prefix}{line}{suffix}'
+
+def lacros_line_handler(line):
+    prefix = f'{tesc.B_GREEN}{tesc.F_WHITE} Lacros {tesc.END} {tesc.F_L_GREEN}'
+    suffix = f'{tesc.END}'
+
+    line = concise_syslog_line(line, [tesc.F_L_GREEN, tesc.F_GREEN, tesc.F_D_GREEN])
+
+    return f'{prefix}{line}{suffix}'
+
+# Spawn log merges.
 t1 = threading.Thread(
-    target=line_wrap,
-    args=(proc_main.stdout, stdout_lock, ash_prefix, suffix))
+    target=line_handler,
+    args=(proc_main.stdout, stdout_lock, ash_line_handler))
 t1.start()
 
 t2 = threading.Thread(
-    target=line_wrap,
-    args=(proc_tail.stdout, stdout_lock, lacros_prefix, suffix))
+    target=line_handler,
+    args=(proc_tail.stdout, stdout_lock, lacros_line_handler))
 t2.start()
 
 t1.join()

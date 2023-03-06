@@ -177,10 +177,17 @@ an() {
         if [[ $target != "chrome" ]]; then
           echo "warning: non-chrome, non-test lacros target isn't supported."
         fi
+
+        # TODO: Probe python3 availability for weird linux installations?
+        cola_wrapper=${ZSH_CUSTOM}rc/cola.py
+
         local xdg_dir="../ash_chrome_xdg_runtime"
         local ash_profile="../profiles/ash"
         mkdir -p ${xdg_dir}
-        XGD_RUNTIME_DIR=${xdg_dir} $( echo $network_helper ) ${default_build}/chrome \
+        XGD_RUNTIME_DIR=${xdg_dir} \
+            $( echo $network_helper ) \
+            $( echo $cola_wrapper ) \
+            ${default_build}/chrome \
             --user-data-dir=$ash_profile \
             --enable-wayland-server \
             --no-startup-window \

@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
 #
-# Line based log merging for Ash + Lacros
-#
+# Chromium line based log merging for running Lacros with Ash
+# ¯                    ¯                      ¯           ¯
 # Usage:
 #  export LACROS_LOG_PATH=<expected_lacros_log_path>
-#  chromium_merge_ash_lacros_log.py <ash_chrome_args...>
+#  cola.py <ash_chrome_args_that_runs_lacros...>
 
 import sys
 import os
@@ -13,13 +13,22 @@ import signal
 import fileinput
 import threading
 import atexit
+import argparse
+
+# TODO: Figure out integration with Ash+Lacros browsertest
 
 # Default path assumes Ash user-data-dir is ../profiles/ash (qjw's chromium_rc setup)
 lacros_log_file = os.environ.get('LACROS_LOG_PATH', '../profiles/ash/lacros/lacros.log')
 
+# Pluck args we know (the names are deliberately short, and are unlikely to clash with chromium args).
+parser = argparse.ArgumentParser(description = "Helper script to run Ash and Lacros, merge and colorize their logs")
+parser.add_argument("-g", "--grep", action='store_true', help="<TODO> Only show lines of interest")
+args, ash_cmd = parser.parse_known_args()
+
 # Clear existing file logs for `tail -f`
-with open(lacros_log_file, "w") as file:
-    pass
+if os.path.isfile(lacros_log_file):
+    with open(lacros_log_file, "w") as file:
+        pass
 
 proc_tail = subprocess.Popen(
     ["/usr/bin/tail", "-F", lacros_log_file],
@@ -30,7 +39,7 @@ proc_tail = subprocess.Popen(
 )
 
 proc_main = subprocess.Popen(
-    sys.argv[1:],
+    ash_cmd,
     stdin=None,
     stdout=subprocess.PIPE,
     stderr=subprocess.STDOUT,
@@ -57,9 +66,8 @@ stdout_lock = threading.Lock()
 def line_wrap(f, lock, prefix='', suffix=''):
     try:
         for line in f:
-            
             # TODO: Filter out less useful lines
-            # TODO: Chop out time line
+            # TODO: Chop out time line?
             with lock:
                 sys.stdout.write(prefix+line+suffix)
                 sys.stdout.flush()

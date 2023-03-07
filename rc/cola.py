@@ -69,7 +69,8 @@ stdout_lock = threading.Lock()
 def line_handler(f, lock, line_mapper=lambda x: x):
     try:
         for line in f:
-            # TODO: Filter out less useful lines
+            # TODO: Filter out less useful lines?
+            # TODO: Drop non syslog format lines?
             line = line_mapper(line)
             if not line:
                 continue
@@ -111,7 +112,7 @@ def concise_syslog_line(line, fg_gradient=[]):
     def get_importance(line):
         # RegExp that when matched, mark the line as important and gives it eye-catching styling
         # TODO: make this configurable
-        re_importance_hints = r'(\*{3,})|system|chrome\://'
+        re_importance_hints = r'(\*{3,})|system_(web_)?app|web_ui|webui'
         if len(re.findall(re_importance_hints, line)) > 0:
             return 1
         return 0
@@ -139,7 +140,7 @@ def concise_syslog_line(line, fg_gradient=[]):
         time_str = f'T{dt.strftime(r"%H:%M:%S")}.{frac_str}' # TODO:color this
 
         # Rewrite the following if needed.
-        level_str = m[2]
+        level_str = m[2].ljust(7)  # Longest level string is WARNING (7 chars)
         process_thread_str = m[3]
         file_linenumber_str = m[4]
         message_str = m[5]

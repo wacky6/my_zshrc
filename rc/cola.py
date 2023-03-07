@@ -25,7 +25,7 @@ lacros_log_file = os.environ.get('LACROS_LOG_PATH', '../profiles/ash/lacros/lacr
 
 # Pluck args we know (the names are deliberately short, and are unlikely to clash with chromium args).
 parser = argparse.ArgumentParser(description = "Helper script to run Ash and Lacros, merge and colorize their logs")
-parser.add_argument("-g", "--grep", action='store_true', help="<TODO> Only show lines of interest")
+parser.add_argument("-i", "--only-important", action='store_true', help="Only show important messages")
 args, ash_cmd = parser.parse_known_args()
 
 # Clear existing file logs for `tail -f`
@@ -88,7 +88,7 @@ class tesc:
     F_WHITE = '\033[38;5;255m'
     F_L_BLUE = '\033[38;5;195m'
     F_L_GREEN = '\033[38;5;194m'
-    F_BLUE = '\033[38;5;117m'
+    F_BLUE = '\033[38;5;153m'
     F_GREEN = '\033[38;5;120m'
     F_D_BLUE = '\033[38;5;75m'
     F_D_GREEN = '\033[38;5;82m'
@@ -108,18 +108,29 @@ def concise_syslog_line(line, fg_gradient=[]):
     re_file_linenumber = r'\[[a-zA-Z_0-9.\-]+\(\d+\)\]'
     re_syslog_line = fr'({re_iso_8601})\s*({re_level})\s*({re_process_thread}):\s*({re_file_linenumber})\s*(.+)'
 
-    # RegExp that when matched, mark the line as important and gives it eye-catching styling
-    # TODO: make this configurable
-    re_importance_hints = r'(\*{3,})|system'
+    def get_importance(line):
+        # RegExp that when matched, mark the line as important and gives it eye-catching styling
+        # TODO: make this configurable
+        re_importance_hints = r'(\*{3,})|system|chrome\://'
+        if len(re.findall(re_importance_hints, line)) > 0:
+            return 1
+        return 0
+
+    # Determine importance and skip message if necessary
+    importance = get_importance(line)
+    if args.only_important and importance < 1:
+        return None
 
     def syslog_line_rewrite(m):
-        base_gradient = 0
-
-        if len(re.findall(re_importance_hints, line)) > 0:
-            base_gradient += 1
+        # Pick styling based on importance
+        base_gradient = min(importance, len(fg_gradient)-1)
+        fg1_esc = fg_gradient[base_gradient]
+        fg2_esc = fg_gradient[base_gradient+1]
+        if base_gradient > 0:
+            fg1_esc = tesc.F_BOLD + fg1_esc
+            fg2_esc = tesc.F_BOLD + fg2_esc
 
         # Time rewrite
-        #
         # Replace the trailing 'Z' with TZ offset, because python3<3.11 can't parse it.
         # WTF py?
         iso_str = m[1].replace('Z', '+00:00')
@@ -127,19 +138,11 @@ def concise_syslog_line(line, fg_gradient=[]):
         frac_str = '%03d' % int(round(dt.microsecond / 1000))
         time_str = f'T{dt.strftime(r"%H:%M:%S")}.{frac_str}' # TODO:color this
 
-        # Note, rewrite the following if needed.
+        # Rewrite the following if needed.
         level_str = m[2]
         process_thread_str = m[3]
         file_linenumber_str = m[4]
         message_str = m[5]
-
-        base_gradient = min(base_gradient, len(fg_gradient)-1)
-        fg1_esc = fg_gradient[base_gradient]
-        fg2_esc = fg_gradient[base_gradient+1]
-
-        if base_gradient > 0:
-            fg1_esc = tesc.F_BOLD + fg1_esc
-            fg2_esc = tesc.F_BOLD + fg2_esc
 
         return f'{fg1_esc}{time_str} {level_str} {process_thread_str} {file_linenumber_str}: {tesc.END}{fg2_esc}{message_str}{tesc.END}'
 
@@ -151,7 +154,7 @@ def ash_line_handler(line):
 
     line = concise_syslog_line(line, [tesc.F_L_BLUE, tesc.F_BLUE, tesc.F_D_BLUE])
 
-    return f'{prefix}{line}{suffix}'
+    return f'{prefix}{line}{suffix}' if line else None
 
 def lacros_line_handler(line):
     prefix = f'{tesc.B_GREEN}{tesc.F_WHITE} Lacros {tesc.END} {tesc.F_L_GREEN}'
@@ -159,7 +162,7 @@ def lacros_line_handler(line):
 
     line = concise_syslog_line(line, [tesc.F_L_GREEN, tesc.F_GREEN, tesc.F_D_GREEN])
 
-    return f'{prefix}{line}{suffix}'
+    return f'{prefix}{line}{suffix}' if line else None
 
 # Spawn log merges.
 t1 = threading.Thread(

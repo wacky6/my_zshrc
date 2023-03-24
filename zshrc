@@ -119,8 +119,8 @@ UPSTREAM_COMMIT_TIME=$( cd $ZSHRC_DIR && git show origin/master -s --format='%ct
 if [ $UPSTREAM_COMMIT_TIME -gt $CUR_COMMIT_TIME ] ; then
   print -rP ""
   print -rP "%K{160}Warning: Local zshrc is out-of-sync. Please check local changes.%F{231}%f%k"
-  print -rP "%F{228}   Local commit is: $( git show master -s --format='%ci' )%f"
-  print -rP "%F{228}  Remote commit is: $( git show origin/master -s --format='%ci' )%f"
+  print -rP "%F{228}   Local commit is: $( cd $ZSHRC_DIR && git show master -s --format='%ci' )%f"
+  print -rP "%F{228}  Remote commit is: $( cd $ZSHRC_DIR && git show origin/master -s --format='%ci' )%f"
   print -rP ""
 fi
 

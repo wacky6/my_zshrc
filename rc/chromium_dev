@@ -75,7 +75,8 @@ an() {
 
   if [ $run -eq 1 ]; then
     # Network helper
-    local network_helper=" "
+    local effective_user=$( whoami )
+    local network_helper="sudo -u $effective_user"
 
     if [ $no_network -eq 1 ]; then
       if ! type "sudo" > /dev/null || ! type "ip" > /dev/null ; then
@@ -88,7 +89,6 @@ an() {
       local sudo_prompt=$( print -rP '%F{220}chromium network helper needs to configure network namespaces.${newline}[sudo] password for %%u: %f' )
       sudo -vp "$sudo_prompt"
 
-      local effective_user=$( whoami )
       local test_ns=chromium_test
 
       # Create network namespace if necessary.
@@ -181,11 +181,10 @@ an() {
         # TODO: Probe python3 availability for weird linux installations?
         cola_wrapper=${ZSH_CUSTOM}rc/cola.py
 
-        local xdg_dir="../ash_chrome_xdg_runtime"
+        local xdg_dir=$( readlink -f ../ash_chrome_xdg_runtime )
         local ash_profile="../profiles/ash"
-        mkdir -p ${xdg_dir}
-        XGD_RUNTIME_DIR=${xdg_dir} \
-            $( echo $network_helper ) \
+        $( echo $network_helper ) \
+            XDG_RUNTIME_DIR=${xdg_dir} \
             $( echo $cola_wrapper ) \
             ${default_build}/chrome \
             --user-data-dir=$ash_profile \

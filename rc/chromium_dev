@@ -185,8 +185,7 @@ an() {
         local ash_profile="../profiles/ash"
         mkdir -p ${xdg_dir}
 
-        # cola_wrapper
-        eval $network_helper
+        eval $network_helper \
             XDG_RUNTIME_DIR=${xdg_dir} \
             $cola_wrapper \
             ${default_build}/chrome \
@@ -195,7 +194,7 @@ an() {
             --no-startup-window \
             --enable-features=LacrosSupport,LacrosPrimary,LacrosOnly \
             --lacros-chrome-path=$build_dir \
-            $clever_args $@
+            $clever_args \$@
       else
         # Run non-lacros target.
         eval $network_helper ${build_dir}/${target} $clever_args \$@

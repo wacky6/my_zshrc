@@ -41,8 +41,11 @@ proc_tail = subprocess.Popen(
     encoding="utf-8",
 )
 
+print(ash_cmd)
+
 proc_main = subprocess.Popen(
     ash_cmd,
+    shell=False,
     stdin=None,
     stdout=subprocess.PIPE,
     stderr=subprocess.STDOUT,

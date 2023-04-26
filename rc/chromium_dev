@@ -75,7 +75,7 @@ an() {
 
   if [ $run -eq 1 ]; then
     # Network helper
-    local network_helper=" "
+    local network_helper=""
 
     if [ $no_network -eq 1 ]; then
       if ! type "sudo" > /dev/null || ! type "ip" > /dev/null ; then
@@ -113,10 +113,10 @@ an() {
       if [ $xvfb -eq 1 ]; then
         # wrap with dummy_home and xvfb, so we don't get windows showing on
         # desktop, and keep the real homedir untouched.
-        $( echo $network_helper ) ./testing/run_with_dummy_home.py ./testing/xvfb.py $( echo $maybe_lacros_wrapper ) ${build_dir}/${target} $@
+        eval ./testing/run_with_dummy_home.py ./testing/xvfb.py ${maybe_lacros_wrapper} ${build_dir}/${target} \$@
       else
         # run on active display, and allow human intervention
-        $( echo $network_helper ) $( echo $maybe_lacros_wrapper ) ${build_dir}/${target} $@ \
+        eval $maybe_lacros_wrapper ${build_dir}/${target} \$@ \
             --enable-pixel-output-in-tests \
             --ui-test-action-max-timeout=1000000 \
             --test-launcher-timeout=1000000
@@ -167,7 +167,7 @@ an() {
           fi
         else
           # Local session. Assuming corp 27" dual-monitor setup.
-          clever_args="$clever_args --force-device-scale-factor=1.3 --ash-host-window-bounds=2560x1360\*1.3 "
+          clever_args="$clever_args --force-device-scale-factor=1.25 --ash-host-window-bounds=2560x1360\*1.25 "
         fi
       fi
       print -rP "clever args: %F{220}$clever_args%f" >&2
@@ -177,19 +177,21 @@ an() {
         if [[ $target != "chrome" ]]; then
           echo "warning: non-chrome, non-test lacros target isn't supported."
         fi
-        local xdg_dir="../ash_chrome_xdg_runtime"
+        local xdg_dir=$( readlink -f ../ash_chrome_xdg_runtime )
         local ash_profile="../profiles/ash"
         mkdir -p ${xdg_dir}
-        XGD_RUNTIME_DIR=${xdg_dir} $( echo $network_helper ) ${default_build}/chrome \
+        eval $network_helper
+            XDG_RUNTIME_DIR=${xdg_dir} \
+            ${default_build}/chrome \
             --user-data-dir=$ash_profile \
             --enable-wayland-server \
             --no-startup-window \
             --enable-features=LacrosSupport,LacrosPrimary,LacrosOnly \
             --lacros-chrome-path=$build_dir \
-            $@
+            $clever_args \$@
       else
         # Run non-lacros target.
-        $( echo $network_helper ) ${build_dir}/${target} $( echo $clever_args ) $@
+        eval $network_helper ${build_dir}/${target} $clever_args \$@
       fi
     fi
   fi

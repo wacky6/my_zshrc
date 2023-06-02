@@ -105,9 +105,13 @@ an() {
       # Run test. Prepend lacros wrapper is necessary.
       local maybe_lacros_wrapper=" "
       if [ $lacros -eq 1 ]; then
+        # lacros tests needs `test_ash_chrome`` instead of `chrome`
+        # we need to build it
+        ninja -j 2048 -C $default_build test_ash_chrome
+
         # determine lacros launch helper.
         # it is later expanded with $( echo $wrapper ) to spread the args.
-        maybe_lacros_wrapper="./build/lacros/test_runner.py test"
+        maybe_lacros_wrapper="./build/lacros/test_runner.py test --ash-chrome-path ${default_build}/test_ash_chrome"
       fi
 
       if [ $xvfb -eq 1 ]; then

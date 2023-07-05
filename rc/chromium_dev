@@ -192,7 +192,8 @@ an() {
             --user-data-dir=$ash_profile \
             --enable-wayland-server \
             --no-startup-window \
-            --enable-features=LacrosSupport,LacrosPrimary,LacrosOnly \
+            --enable-features=LacrosSupport,LacrosPrimary,LacrosOnly,AllowDevToolsInSystemUI \
+            --enable-ash-debug-browser \
             --lacros-chrome-path=$build_dir \
             $clever_args \$@
       else

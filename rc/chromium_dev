@@ -67,10 +67,10 @@ an() {
   local target="$1"
   shift 1
 
-  ninja -j 2048 -C $build_dir $target || return 1
+  autoninja -j 2048 -C $build_dir $target || return 1
   if [[ $target == "chrome" && $lacros == 1 ]]; then
     # Also build ash chrome if we are building lacros chrome.
-    ninja -j 2048 -C $default_build $target || return 1
+    autoninja -j 2048 -C $default_build $target || return 1
   fi
 
   if [ $run -eq 1 ]; then
@@ -236,7 +236,7 @@ dcr() {
   grep -qF 'use_goma' out_${BOARD}/Release/args.gn || echo 'use_goma = true' >> out_${BOARD}/Release/args.gn
   grep -qF 'dcheck_always_on' out_${BOARD}/Release/args.gn || echo 'dcheck_always_on = true' >> out_${BOARD}/Release/args.gn
   gn gen -C out_${BOARD}/Release
-  ninja -j 2048 -C out_$BOARD/Release chrome || return 1
+  autoninja -j 2048 -C out_$BOARD/Release chrome || return 1
   ./third_party/chromite/bin/deploy_chrome --build-dir=out_$BOARD/Release --device=$device --board=$BOARD $@
 }
 
